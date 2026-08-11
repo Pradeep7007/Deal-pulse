@@ -1,70 +1,142 @@
-# Getting Started with Create React App
+# Microsoft Rewards Croma Gift Card Availability Notifier
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A complete, production-ready, full-stack application designed to monitor the Microsoft Rewards Croma Gift Card redemption page and notify you immediately via email (using Gmail SMTP) when the reward becomes available (the "Redeem now" button is enabled).
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🌟 Features
 
-### `npm start`
+*   **Professional Bootstrap Dashboard**: Sleek, modern dark-themed responsive UI with active monitoring status indicators, diagnostic cards, logs history, and SMTP notifications timeline.
+*   **Dynamic Monitoring Controls**: Start, stop, or trigger manual checks of the rewards availability instantly from the dashboard.
+*   **Authentication Helper**: Launch an interactive browser session to log in to your Microsoft Account manually, saving cookies to the persistent profile so future background crawling works seamlessly.
+*   **Robust Playwright Crawler**: Evaluates the true disabled/enabled state of the button. Ignores restock notification texts and targets the button attributes directly.
+*   **State-Transition Alert Logic**: Sends email notifications *only* when the gift card availability transitions from `DISABLED`/`UNKNOWN` to `ENABLED`, preventing spam.
+*   **Comprehensive Diagnostics**: Stores all checks, response times, errors, and email transmission histories in MongoDB for analytics.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🛠️ Technology Stack
 
-### `npm test`
+*   **Frontend**: React 19, Bootstrap 5, Bootstrap Icons, React Router DOM, Axios
+*   **Backend**: Node.js, Express.js, MongoDB + Mongoose, Playwright (Chromium)
+*   **Alerts**: Nodemailer (Gmail SMTP)
+*   **Logging**: Winston + Morgan
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 📂 Folder Structure
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```text
+rewards/
+├── client/
+│   ├── public/
+│   │   └── favicon.ico
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Navbar.jsx
+│   │   │   └── Sidebar.jsx
+│   │   ├── pages/
+│   │   │   ├── Dashboard.jsx
+│   │   │   └── Settings.jsx
+│   │   ├── services/
+│   │   │   └── api.js
+│   │   ├── App.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+├── server/
+│   ├── config/
+│   │   └── db.js
+│   ├── controllers/
+│   │   ├── logController.js
+│   │   ├── monitorController.js
+│   │   ├── notificationController.js
+│   │   └── settingsController.js
+│   ├── middleware/
+│   │   └── validation.js
+│   ├── models/
+│   │   ├── Log.js
+│   │   ├── MonitorState.js
+│   │   ├── Notification.js
+│   │   └── Settings.js
+│   ├── routes/
+│   │   └── api.js
+│   ├── services/
+│   │   ├── notificationService.js
+│   │   ├── playwrightService.js
+│   │   └── schedulerService.js
+│   ├── utils/
+│   │   └── logger.js
+│   ├── package.json
+│   └── server.js
+├── .env
+├── .env.example
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🚀 Quick Start
 
-### `npm run eject`
+1.  **Configure Environment Variables**:
+    Copy the `.env.example` file to `.env` and fill in your MongoDB URI, target Rewards URL, and Gmail SMTP settings:
+    ```bash
+    cp .env.example .env
+    ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2.  **Install All Dependencies**:
+    Run `npm install` from the root workspace directory. This will automatically install dependencies for both the `client` and `server` packages.
+    ```bash
+    npm install
+    ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+3.  **Install Playwright Browser Binary**:
+    Download the Chromium engine required for crawling:
+    ```bash
+    npx -w server playwright install chromium
+    ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+4.  **Run Development Servers**:
+    Launch both the Vite client dev server (port 3000) and Express server (port 5000) concurrently:
+    ```bash
+    npm run dev
+    ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+5.  **Open the Web Dashboard**:
+    Navigate to `http://localhost:3000` in your web browser.
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🔒 Microsoft Rewards Authentication Guide
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Microsoft Rewards requires an authenticated session to view redemption details. To log in and cache your session cookies:
 
-### Code Splitting
+1.  Navigate to the **Settings** page on the dashboard.
+2.  Review/save your configuration (make sure the **Chrome User Profile Directory** is set, e.g., `./browser-profile`).
+3.  Under **Authentication Helper**, click the **Open Browser for Login** button.
+4.  This opens a visible Chromium browser window on your host machine.
+5.  Log in manually to your Microsoft account. Complete any two-factor authentication or CAPTCHAs.
+6.  Once you see your Microsoft Rewards redeem page successfully logged in, **close the browser window**.
+7.  The application will reuse these authenticated session cookies for all subsequent scheduled checks!
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## 🐳 Docker Deployment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+The application is fully containerized. A Named volume is utilized to persist the browser profile, ensuring you don't lose your login session when containers restart.
 
-### Making a Progressive Web App
+To run using Docker Compose:
+```bash
+docker-compose up --build -d
+```
+The application will be accessible at `http://localhost:5000` (combining frontend and backend).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## 📝 License
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is open-source and free to use.

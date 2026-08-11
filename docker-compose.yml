@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # MongoDB Service
+  mongodb:
+    image: mongo:latest
+    container_name: rewards-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+
+  # Rewards App Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rewards-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    environment:
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/rewards
+      - REWARDS_URL=https://rewards.bing.com/redeem/000702000287
+      - CHECK_INTERVAL=5
+      - BROWSER_PROFILE_PATH=/app/browser-profile
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=your-email@gmail.com
+      - SMTP_PASS=your-app-password
+      - EMAIL_TO=recipient-email@gmail.com
+      - NODE_ENV=production
+    volumes:
+      # Persist Chrome profiles so manual logins remain saved
+      - browser-profile:/app/browser-profile
+
+volumes:
+  mongodb-data:
+  browser-profile:

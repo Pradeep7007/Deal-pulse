@@ -16,6 +16,41 @@ const ensureProfileDir = (profilePath) => {
 };
 
 /**
+ * Robustly launches browser context trying local Chrome, Edge, and then default Chromium.
+ */
+const launchBrowserContext = async (profilePath, headless) => {
+  const options = {
+    headless,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-blink-features=AutomationControlled'
+    ],
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+  };
+
+  try {
+    logger.info(`Attempting to launch persistent context using local Chrome (headless: ${headless})...`);
+    return await chromium.launchPersistentContext(profilePath, {
+      ...options,
+      channel: 'chrome'
+    });
+  } catch (chromeError) {
+    logger.warn(`Failed to launch local Chrome: ${chromeError.message}. Retrying with local Microsoft Edge...`);
+    try {
+      return await chromium.launchPersistentContext(profilePath, {
+        ...options,
+        channel: 'msedge'
+      });
+    } catch (edgeError) {
+      logger.warn(`Failed to launch local Edge: ${edgeError.message}. Retrying with default Chromium...`);
+      return await chromium.launchPersistentContext(profilePath, options);
+    }
+  }
+};
+
+
+/**
  * Checks the reward availability of the gift card page.
  * @param {Object} settings - Database settings object
  * @returns {Promise<Object>} - Object with status, buttonState, responseTime, and error
@@ -35,16 +70,8 @@ export const checkRewardAvailability = async (settings) => {
     try {
       logger.info(`Checking rewards status (Attempt ${attempts}/${maxAttempts})...`);
       
-      // Launch persistent context
-      browserContext = await chromium.launchPersistentContext(profilePath, {
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-blink-features=AutomationControlled' // Helps bypass bot detection
-        ],
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      });
+      // Launch persistent context robustly using local Chrome or Edge
+      browserContext = await launchBrowserContext(profilePath, true);
 
       const page = await browserContext.newPage();
       
@@ -176,16 +203,8 @@ export const launchLoginBrowser = async (settings) => {
 
   logger.info(`Launching login browser with profile: ${profilePath}`);
   
-  // Launch persistent context in headful mode (headless: false)
-  const browserContext = await chromium.launchPersistentContext(profilePath, {
-    headless: false,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-blink-features=AutomationControlled'
-    ],
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-  });
+  // Launch persistent context in headful mode using local Chrome or Edge
+  const browserContext = await launchBrowserContext(profilePath, false);
 
   const page = await browserContext.newPage();
   await page.setViewportSize({ width: 1280, height: 800 });

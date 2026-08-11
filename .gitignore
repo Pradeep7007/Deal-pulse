@@ -28,3 +28,12 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# App-specific excludes
+/server/browser-profile/
+**/browser-profile/
+/server/logs/*.log
+/server/logs/combined.log
+/server/logs/error.log
+/client/dist/
+/client/build/
